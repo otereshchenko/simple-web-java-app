@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: foo-app-pod-label-v1
+  template:
+    metadata:
+      labels:
+        app: foo-app-pod-label-v1
+    spec:
+      containers:
+        - name: foo-app-v1
+          image: 'xander11m/java-app:9099'
+          ports:
+            - name: 'pod-custom-port' # alias
+              containerPort: 9099 # Port on POD
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: foo-service
+spec:
+  selector:
+    app: foo-app-pod-label-v1
+  ports:
+    - targetPort: 'pod-custom-port' #find alias
+      port: 8080 #port on service
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: foo-service
+                port:
+                  number: 8080
+---

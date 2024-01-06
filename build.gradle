@@ -5,10 +5,10 @@ plugins {
 }
 
 group = 'com.xander'
-version '1'
+version '9099'
 
 bootBuildImage {
-    imageName = "xander11m/java-app:1"
+    imageName = "xander11m/java-app:9099"
     createdDate = "now"
 }
 
