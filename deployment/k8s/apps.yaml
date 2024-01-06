@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: foo-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: foo-app-pod-label-v9099
+  template:
+    metadata:
+      labels:
+        app: foo-app-pod-label-v9099
+    spec:
+      containers:
+        - name: foo-app-v9099
+          imagePullPolicy: Always
+          image: 'xander11m/java-app:9099'
+          ports:
+            - name: 'pod-custom-port' # alias
+              containerPort: 9099 # Port on POD
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bar-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bar-app-pod-label-v1
+  template:
+    metadata:
+      labels:
+        app: bar-app-pod-label-v1
+    spec:
+      containers:
+        - name: bar-app-v1
+          image: 'xander11m/java-app:8080'
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: foo-service
+spec:
+  selector:
+    app: foo-app-pod-label-v9099
+  ports:
+    - targetPort: 'pod-custom-port' #find alias
+      port: 8080 #port on service
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: bar-service
+spec:
+  selector:
+    app: bar-app-pod-label-v1
+  ports:
+    - port: 8080 #port on service
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: /v1
+            backend:
+              service:
+                name: foo-service
+                port:
+                  number: 8080
+          - pathType: Exact
+            path: /v2
+            backend:
+              service:
+                name: bar-service
+                port:
+                  number: 8080
+          - pathType: Exact
+            path: /headers1
+            backend:
+              service:
+                name: foo-service
+                port:
+                  number: 8080
+          - pathType: Exact
+            path: /headers2
+            backend:
+              service:
+                name: bar-service
+                port:
+                  number: 8080
+---
